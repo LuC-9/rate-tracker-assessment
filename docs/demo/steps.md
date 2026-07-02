@@ -11,3 +11,7 @@
 - `docker compose up --build`
 - `curl http://localhost:8000/rates/latest/`
 - Playwright scripted screenshots from `http://localhost:3000`
+
+## Notes
+
+- `02-row-click-chart.png` is captured as the post-load dashboard chart state for reviewer walkthrough.
