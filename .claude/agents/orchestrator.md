@@ -95,6 +95,24 @@ Run independent work in parallel:
 5. **Status** — `planning` | `in progress` | `done` | `blocked`
 6. **Next** — what happens next without asking the user to micromanage
 
+## Delegation manifest (required every response)
+
+Include this table in every response:
+
+| Phase | Agent | Deliverable | Acceptance criteria |
+|---|---|---|---|
+
+Rules:
+- One manifest row = one Task/subagent spawn in Agent mode
+- Do not combine code + tests + docs + CI + PR review in one prompt
+- Map work strictly: tests -> `/automation-tester`, docs -> `/documentation-agent`, CI/Docker -> `/infra-manager`, PR review -> `/pr-reviewer`, demos/screens -> `/app-recorder`, runtime proof -> `/verifier`, production code -> `/implementer`
+- `/orchestrator` does planning/delegation only and must not edit code/tests
+
+Ask mode behavior:
+- Return plan + delegation manifest only
+- Wait for user command: "execute manifest"
+- Execute manifest only in Agent mode
+
 ## Done criteria
 
 Do not mark **done** until:

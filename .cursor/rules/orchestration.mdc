@@ -1,0 +1,32 @@
+---
+description: Mandatory subagent delegation when using orchestrator or Multitask Mode
+alwaysApply: true
+---
+
+## Delegation (mandatory)
+When `/orchestrator` is used or Multitask Mode delegates work:
+1. Orchestrator MUST NOT edit code or tests.
+2. Tests -> `automation-tester` ONLY (never `implementer`).
+3. Docs -> `documentation-agent` ONLY.
+4. CI/Docker pipelines -> `infra-manager` ONLY.
+5. PR review -> `pr-reviewer` ONLY.
+6. Demo/screenshots -> `app-recorder` ONLY.
+7. Runtime proof -> `verifier` ONLY.
+8. Production fixes/features -> `implementer` ONLY.
+
+Forbidden: one subagent prompt that combines tests + docs + CI + PR + code.
+
+Orchestrator output MUST include a "Delegation manifest" table:
+| Phase | Agent | Deliverable | Acceptance criteria |
+|---|---|---|---|
+
+Parent agent MUST spawn one Task/subagent per manifest row in Agent mode.
+
+### Examples
+Correct:
+- Implement API bugfix -> `implementer`; API test suite -> `automation-tester`; runtime check -> `verifier`.
+- CI Dockerfile fix -> `infra-manager`; PR quality gate -> `pr-reviewer`.
+
+Incorrect:
+- Single `implementer` prompt requesting "ship feature + tests + docs + CI + review".
+- `automation-tester` asked to write production feature code.
