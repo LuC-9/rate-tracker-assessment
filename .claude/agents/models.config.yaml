@@ -1,0 +1,84 @@
+﻿# Agent model pools — Cursor uses `model` in each agent .md; orchestrator may override via Task `model` param.
+#
+# Platform defaults:
+#   .cursor/agents  → model = openai for coding agents, anthropic for reasoning
+#   .claude/agents   → model = anthropic (Anthropic-first)
+#
+providers:
+  anthropic:
+    - claude-opus-4-7-thinking-xhigh
+    - claude-4.6-opus-high-thinking
+    - claude-4.6-sonnet-medium-thinking
+    - claude-4.5-sonnet-thinking
+    - claude-4.5-haiku-thinking
+  openai:
+    - gpt-5.3-codex
+    - gpt-5.4-medium
+    - gpt-5.5-medium
+    - gpt-5-mini
+    - composer-2.5-fast
+  google:
+    - gemini-3-flash
+    - gemini-3.5-flash
+
+agents:
+  orchestrator:
+    anthropic: claude-opus-4-7-thinking-xhigh
+    openai: gpt-5.5-medium
+    fallback: claude-4.6-opus-high-thinking
+  tech-lead:
+    anthropic: claude-4.6-sonnet-medium-thinking
+    openai: gpt-5.4-medium
+    fallback: claude-4.6-opus-high-thinking
+  architect:
+    anthropic: claude-4.6-opus-high-thinking
+    openai: gpt-5.5-medium
+    fallback: claude-opus-4-7-thinking-xhigh
+  implementer:
+    anthropic: claude-4.6-sonnet-medium-thinking
+    openai: gpt-5.3-codex
+    fallback: composer-2.5-fast
+  automation-tester:
+    anthropic: claude-4.5-sonnet-thinking
+    openai: gpt-5.3-codex
+    fallback: composer-2.5-fast
+  pr-reviewer:
+    anthropic: claude-4.6-sonnet-medium-thinking
+    openai: gpt-5.4-medium
+    fallback: claude-4.6-opus-high-thinking
+  security-reviewer:
+    anthropic: claude-4.6-opus-high-thinking
+    openai: gpt-5.5-medium
+    fallback: claude-opus-4-7-thinking-xhigh
+  qa:
+    anthropic: claude-4.5-haiku-thinking
+    google: gemini-3-flash
+    openai: gpt-5-mini
+  verifier:
+    anthropic: claude-4.5-haiku-thinking
+    openai: composer-2.5-fast
+    google: gemini-3-flash
+  debugger:
+    anthropic: claude-4.6-sonnet-medium-thinking
+    openai: gpt-5.4-medium
+    fallback: claude-4.6-opus-high-thinking
+  ci-investigator:
+    anthropic: claude-4.5-haiku-thinking
+    google: gemini-3-flash
+    openai: gpt-5-mini
+  documentation-agent:
+    anthropic: claude-4.6-sonnet-medium-thinking
+    openai: gpt-5.4-medium
+    fallback: gpt-5.5-medium
+  ui-designer:
+    anthropic: claude-4.6-sonnet-medium-thinking
+    openai: gpt-5.4-medium
+    google: gemini-3-flash
+  infra-manager:
+    anthropic: claude-4.6-sonnet-medium-thinking
+    openai: gpt-5.3-codex
+    fallback: gpt-5.4-medium
+  app-recorder:
+    anthropic: claude-4.5-haiku-thinking
+    google: gemini-3-flash
+    openai: composer-2.5-fast

@@ -1,4 +1,5 @@
 from django.core.cache import cache
+import hashlib
 
 
 LATEST_CACHE_PREFIX = 'rates:latest'
@@ -11,8 +12,10 @@ def latest_cache_key(rate_type=None):
     return LATEST_CACHE_PREFIX
 
 
-def history_cache_key(provider, rate_type, date_from, date_to, page):
-    return f'{HISTORY_CACHE_PREFIX}:{provider}:{rate_type}:{date_from}:{date_to}:{page}'
+def history_cache_key(provider, rate_type, date_from, date_to, page, page_size):
+    raw_key = f'{provider}:{rate_type}:{date_from}:{date_to}:{page}:{page_size}'
+    digest = hashlib.sha1(raw_key.encode('utf-8')).hexdigest()
+    return f'{HISTORY_CACHE_PREFIX}:{digest}'
 
 
 def invalidate_rate_caches(rate_type=None, provider=None):

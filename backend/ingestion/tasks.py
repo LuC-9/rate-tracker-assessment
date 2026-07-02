@@ -36,7 +36,7 @@ def run_ingestion(self):
                 logger.error('Seed file not found for scheduled ingestion', extra={'path': path})
                 return {'status': 'error', 'detail': 'seed file missing'}
 
-            summary = load_parquet_file(path, batch_size=500)
+            summary = load_parquet_file(path, batch_size=500, max_rows=500)
             logger.info('Ingestion job completed via seed slice', extra=summary)
             return summary
     except Exception as exc:

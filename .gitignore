@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+.env
+.venv/
+venv/
+*.log
+node_modules/
+.next/
+staticfiles/
+postgres_data/
+__MACOSX/
+docx_extract.txt
+*.parquet
+*.docx
+test-results/
+playwright-report/
+backend/celerybeat-schedule*

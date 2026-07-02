@@ -94,13 +94,26 @@ class Rate(BaseModel):
 
     @classmethod
     def get_latest_per_provider(cls, rate_type=None):
+        from django.db import connection
+
         queryset = cls.objects.all()
         if rate_type:
             queryset = queryset.filter(rate_type=rate_type)
-        return (
-            queryset.order_by('provider_normalized', 'rate_type', '-effective_date', '-ingestion_timestamp')
-            .distinct('provider_normalized', 'rate_type')
-        )
+
+        if connection.vendor == 'postgresql':
+            return queryset.order_by(
+                'provider_normalized',
+                'rate_type',
+                '-effective_date',
+                '-ingestion_timestamp',
+            ).distinct('provider_normalized', 'rate_type')
+
+        latest = {}
+        for rate in queryset.order_by('-effective_date', '-ingestion_timestamp'):
+            key = (rate.provider_normalized, rate.rate_type)
+            if key not in latest:
+                latest[key] = rate.id
+        return cls.objects.filter(id__in=latest.values())
 
     @classmethod
     def get_history(cls, provider, rate_type, start_date=None, end_date=None):

@@ -42,13 +42,36 @@ def _parse_rate_value(value):
         return None
 
 
+def _json_safe(value):
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
+    if isinstance(value, Decimal):
+        return float(value)
+    try:
+        import math
+
+        if isinstance(value, float) and math.isnan(value):
+            return None
+    except TypeError:
+        pass
+    if hasattr(value, 'isoformat'):
+        return value.isoformat()
+    if hasattr(value, 'item'):
+        return value.item()
+    return value
+
+
 def _build_records(row: dict, source: str = 'seed'):
     raw_id = row.get('raw_response_id') or str(uuid.uuid4())
     raw_uuid = uuid.UUID(str(raw_id))
     provider = row.get('provider', '')
     rate_type = row.get('rate_type', '')
     source_url = row.get('source_url') or None
-    raw_data = dict(row)
+    raw_data = {key: _json_safe(val) for key, val in dict(row).items()}
     raw_data['source'] = source
 
     rate_value = _parse_rate_value(row.get('rate_value'))

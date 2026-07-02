@@ -1,5 +1,3 @@
-from decimal import Decimal
-
 from rest_framework import serializers
 
 from rates.models import Rate, is_valid_rate_value, normalize_currency, normalize_provider_name

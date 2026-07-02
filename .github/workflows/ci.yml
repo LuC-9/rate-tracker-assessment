@@ -1,0 +1,17 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+      uses: actions/checkout@v4
+
+      - name: Build and run backend tests
+      run: docker compose run --rm -e DJANGO_SETTINGS_MODULE=rate_tracker.settings -e PYTHONPATH=/app/backend web pytest -q /app/backend/tests

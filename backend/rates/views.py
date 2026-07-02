@@ -1,18 +1,17 @@
 import logging
-from datetime import datetime
 
 from django.conf import settings
 from django.core.cache import cache
-from django.utils.dateparse import parse_date, parse_datetime
+from django.utils.dateparse import parse_date
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from rates.authentication import BearerTokenAuthentication
-from rates.permissions import BearerTokenRequired
 from rates.cache_utils import history_cache_key, invalidate_rate_caches, latest_cache_key
 from rates.models import Rate
+from rates.permissions import BearerTokenRequired
 from rates.serializers import IngestRateSerializer, RateSerializer
 
 logger = logging.getLogger('rates')
@@ -31,7 +30,8 @@ class LatestRatesView(APIView):
         queryset = Rate.get_latest_per_provider(rate_type=rate_type)
         data = RateSerializer(queryset, many=True).data
         payload = {'count': len(data), 'results': data}
-        cache.set(cache_key, payload, settings.CACHE_LATEST_TTL)
+        if data:
+            cache.set(cache_key, payload, settings.CACHE_LATEST_TTL)
         return Response(payload)
 
 
@@ -43,11 +43,26 @@ class HistoryRatesView(APIView):
         rate_type = request.query_params.get('type')
         date_from = request.query_params.get('from')
         date_to = request.query_params.get('to')
-        page = int(request.query_params.get('page', 1))
-        page_size = min(
-            int(request.query_params.get('page_size', settings.REST_FRAMEWORK['PAGE_SIZE'])),
-            settings.HISTORY_MAX_PAGE_SIZE,
-        )
+        try:
+            page = int(request.query_params.get('page', 1))
+            page_size = int(request.query_params.get('page_size', settings.REST_FRAMEWORK['PAGE_SIZE']))
+        except (TypeError, ValueError):
+            return Response(
+                {'error': {'detail': 'page and page_size must be integers.'}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if page < 1:
+            return Response(
+                {'error': {'detail': 'page must be >= 1.'}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if page_size < 1:
+            return Response(
+                {'error': {'detail': 'page_size must be >= 1.'}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        page_size = min(page_size, settings.HISTORY_MAX_PAGE_SIZE)
 
         if not provider or not rate_type:
             return Response(
@@ -55,7 +70,7 @@ class HistoryRatesView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        cache_key = history_cache_key(provider, rate_type, date_from, date_to, page)
+        cache_key = history_cache_key(provider, rate_type, date_from, date_to, page, page_size)
         cached = cache.get(cache_key)
         if cached is not None:
             return Response(cached)
@@ -84,7 +99,8 @@ class HistoryRatesView(APIView):
             'page_size': page_size,
             'results': results,
         }
-        cache.set(cache_key, payload, settings.CACHE_LATEST_TTL)
+        if results:
+            cache.set(cache_key, payload, settings.CACHE_LATEST_TTL)
         return Response(payload)
 
 
