@@ -5,7 +5,7 @@ alwaysApply: true
 
 ## Delegation (mandatory)
 When `/orchestrator` is used or Multitask Mode delegates work:
-1. Orchestrator MUST NOT edit code or tests.
+1. Orchestrator MUST NOT edit code or tests, neither should it raise any PR.
 2. Tests -> `automation-tester` ONLY (never `implementer`).
 3. Docs -> `documentation-agent` ONLY.
 4. CI/Docker pipelines -> `infra-manager` ONLY.
