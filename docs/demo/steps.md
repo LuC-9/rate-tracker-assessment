@@ -15,6 +15,12 @@
    - Observed auto-refresh behavior (60s interval).
 7. Captured screenshots for the walkthrough sequence using Playwright.
 8. Updated documentation with recording notes and instructions.
+9. Recorded a full video walkthrough (`walkthrough.webm`) covering:
+   - Dashboard navigation and sorting.
+   - Filtering by rate type.
+   - Row selection and 30-day history chart display.
+   - API health and latest rates endpoints.
+   - Recording timestamp: 2026-07-03 06:08 UTC.
 
 ## Commands used
 
@@ -23,6 +29,7 @@
 - `cd frontend; npm run dev`
 - `npx playwright install chromium`
 - `node take_screenshots.js`
+- `node record_video.js`
 
 ## Notes
 

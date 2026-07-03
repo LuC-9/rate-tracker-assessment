@@ -5,7 +5,7 @@ This folder captures a local walkthrough of the Rate Tracker stack requested in 
 ## Recording Status
 A full screen recording was performed. Due to repository size constraints, the video file is hosted externally.
 
-**Walkthrough Video:** [Add Loom/Drive link here]
+**Walkthrough Video:** [walkthrough.webm](walkthrough.webm)
 
 ## Screenshots Sequence
 If the video is unavailable, please refer to the following sequence of screenshots:

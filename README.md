@@ -148,7 +148,7 @@ Tests expect PostgreSQL and Redis to be available through Docker Compose.
 
 ## Video walkthrough
 
-[Add Loom/Drive link before submission]
+[Local Walkthrough Video (webm)](docs/demo/walkthrough.webm)
 
 The recording should show the full local stack running, the dashboard at `localhost:3000`, the API working, and the repository/branch contents used for submission.
 
