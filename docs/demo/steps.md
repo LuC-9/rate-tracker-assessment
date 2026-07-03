@@ -28,4 +28,3 @@
 
 - The walkthrough was performed using the `app-recorder` agent.
 - Screenshots are saved in `docs/demo/screenshots/`.
-- Frontend was run locally due to a TypeScript build error in the production Docker image.
