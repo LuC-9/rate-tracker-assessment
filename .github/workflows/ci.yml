@@ -16,6 +16,13 @@ jobs:
       - name: Prepare environment file
         run: cp .env.example .env
 
+      - name: Ensure seed parquet exists
+        run: |
+          if [ ! -f rates_seed.parquet ]; then
+            echo "rates_seed.parquet is required for backend image build."
+            exit 1
+          fi
+
       - name: Build web image
         run: docker compose build web
 

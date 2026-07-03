@@ -11,6 +11,7 @@ postgres_data/
 __MACOSX/
 docx_extract.txt
 *.parquet
+!rates_seed.parquet
 *.docx
 test-results/
 playwright-report/
