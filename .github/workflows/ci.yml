@@ -11,7 +11,44 @@ jobs:
 
     steps:
       - name: Checkout
-      uses: actions/checkout@v4
+        uses: actions/checkout@v4
 
-      - name: Build and run backend tests
-      run: docker compose run --rm -e DJANGO_SETTINGS_MODULE=rate_tracker.settings -e PYTHONPATH=/app/backend web pytest -q /app/backend/tests
+      - name: Prepare environment file
+        run: cp .env.example .env
+
+      - name: Build web image
+        run: docker compose build web
+
+      - name: Run backend tests
+        run: docker compose run --rm --entrypoint "/app/scripts/entrypoint.sh test" web
+
+      - name: Tear down containers
+        if: always()
+        run: docker compose down -v --remove-orphans
+
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Lint frontend
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
