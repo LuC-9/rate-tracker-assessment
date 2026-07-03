@@ -148,9 +148,9 @@ Tests expect PostgreSQL and Redis to be available through Docker Compose.
 
 ## Video walkthrough
 
-[Local Walkthrough Video (webm)](docs/demo/walkthrough.webm)
+[Dashboard Walkthrough Video (webm)](docs/demo/walkthrough-dashboard.webm)
 
-The recording should show the full local stack running, the dashboard at `localhost:3000`, the API working, and the repository/branch contents used for submission.
+The recording focuses on the dashboard UI at `localhost:3000`, demonstrating smooth scrolling, animations, interactive charts, and responsive behavior.
 
 ## What was deferred
 

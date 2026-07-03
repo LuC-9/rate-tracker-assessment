@@ -15,13 +15,14 @@
    - Observed auto-refresh behavior (60s interval).
 7. Captured screenshots for the walkthrough sequence using Playwright.
 8. Updated documentation with recording notes and instructions.
-9. Recorded a full video walkthrough (`walkthrough.webm`) covering:
-   - Dashboard navigation and sorting.
-   - Filtering by rate type.
-   - Row selection and 30-day history chart display.
-   - API health and latest rates endpoints.
-   - Recording timestamp: 2026-07-03 06:15 UTC.
-   - Duration: ~28 seconds.
+9. Recorded a dashboard-focused video walkthrough (`walkthrough-dashboard.webm`) covering:
+   - Smooth scrolling through the entire dashboard UI.
+   - Interactive table sorting and filtering.
+   - Row selection with animated 30-day history charts.
+   - Auto-refresh behavior and loading states.
+   - Desktop and mobile (375px) viewport responsiveness.
+   - Recording timestamp: 2026-07-03 06:18 UTC.
+   - Duration: ~56 seconds.
 
 ## Commands used
 
@@ -29,8 +30,8 @@
 - `docker compose up -d db redis web`
 - `cd frontend; npm run dev`
 - `npx playwright install chromium`
-- `node take_screenshots.js`
 - `node record_video.js`
+- `node take_hero_screenshot.js`
 
 ## Notes
 
