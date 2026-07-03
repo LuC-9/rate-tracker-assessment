@@ -1,0 +1,23 @@
+__pycache__/
+*.py[cod]
+.env
+.venv/
+venv/
+*.log
+node_modules/
+.next/
+staticfiles/
+postgres_data/
+__MACOSX/
+docx_extract.txt
+*.parquet
+!rates_seed.parquet
+*.docx
+test-results/
+playwright-report/
+backend/celerybeat-schedule*
+
+# Local agent/editor config should not be versioned
+.claude/
+.cursor/
+frontend/next-env.d.ts
