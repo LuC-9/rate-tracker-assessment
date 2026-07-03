@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 (async () => {
+  console.log('Starting browser...');
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
     recordVideo: {
@@ -14,63 +15,88 @@ const path = require('path');
 
   const page = await context.newPage();
 
-  console.log('Navigating to Dashboard...');
-  await page.goto('http://localhost:3000');
-  await page.waitForTimeout(2000);
-
-  console.log('Interacting with table (sorting)...');
-  // Assuming there's a header to click for sorting. 
-  // I'll try to find a table header and click it.
-  const header = await page.locator('th').first();
-  if (await header.isVisible()) {
-    await header.click();
-    await page.waitForTimeout(1000);
-  }
-
-  console.log('Interacting with filters...');
-  // Assuming there's a select or input for filtering.
-  const filter = await page.locator('select, input[type="text"]').first();
-  if (await filter.isVisible()) {
-    await filter.focus();
-    // If it's a select, choose an option. If it's an input, type something.
-    const tagName = await filter.evaluate(el => el.tagName);
-    if (tagName === 'SELECT') {
-      await filter.selectOption({ index: 1 });
-    } else {
-      await filter.fill('USD');
-    }
+  try {
+    console.log('1. Navigating to http://localhost:3000');
+    await page.goto('http://localhost:3000', { waitUntil: 'networkidle' });
+    await page.waitForSelector('table', { timeout: 10000 });
     await page.waitForTimeout(2000);
+
+    console.log('2. Demonstrate sorting the table by clicking on column headers');
+    // Sort by Rate %
+    const rateHeader = page.locator('th:has-text("Rate %") button.sort-btn');
+    if (await rateHeader.isVisible()) {
+      await rateHeader.click();
+      await page.waitForTimeout(1500);
+      await rateHeader.click(); // Toggle sort direction
+      await page.waitForTimeout(1500);
+    }
+
+    // Sort by Updated
+    const updatedHeader = page.locator('th:has-text("Updated") button.sort-btn');
+    if (await updatedHeader.isVisible()) {
+      await updatedHeader.click();
+      await page.waitForTimeout(1500);
+    }
+
+    console.log('3. Demonstrate filtering by clicking on filter chips');
+    // The filter chips are formatted: "30yr_fixed_mortgage" -> "30yr fixed mortgage"
+    const mortgageFilter = page.locator('button.filter-chip:has-text("30yr fixed mortgage")');
+    if (await mortgageFilter.isVisible()) {
+      await mortgageFilter.click();
+      await page.waitForTimeout(2000);
+    }
+
+    console.log('4. Demonstrate viewing a row chart by clicking on a rate row');
+    const firstRow = page.locator('tbody tr[role="button"]').first();
+    if (await firstRow.isVisible()) {
+      await firstRow.click();
+      await page.waitForTimeout(4000); // Wait for chart to render and be visible
+    }
+
+    console.log('5. Demonstrate the auto-refresh');
+    // Wait to show the countdown chip changing
+    await page.waitForTimeout(5000);
+
+    console.log('6. Navigate to http://localhost:8000/health/');
+    await page.goto('http://localhost:8000/health/', { waitUntil: 'networkidle' });
+    await page.waitForTimeout(2000);
+
+    console.log('7. Navigate to http://localhost:8000/rates/latest/');
+    await page.goto('http://localhost:8000/rates/latest/', { waitUntil: 'networkidle' });
+    await page.waitForTimeout(2000);
+
+  } catch (error) {
+    console.error('Error during walkthrough:', error);
+  } finally {
+    await context.close();
+    await browser.close();
   }
-
-  console.log('Clicking a row to show chart...');
-  const row = await page.locator('tbody tr').first();
-  if (await row.isVisible()) {
-    await row.click();
-    await page.waitForTimeout(3000); // Wait for chart to render
-  }
-
-  console.log('Waiting for auto-refresh (briefly)...');
-  await page.waitForTimeout(2000);
-
-  console.log('Navigating to API Health...');
-  await page.goto('http://localhost:8000/health/');
-  await page.waitForTimeout(2000);
-
-  console.log('Navigating to API Latest Rates...');
-  await page.goto('http://localhost:8000/rates/latest/');
-  await page.waitForTimeout(2000);
-
-  await context.close();
-  await browser.close();
 
   console.log('Recording finished.');
 
   // Find the recorded video and rename it
-  const files = fs.readdirSync('docs/demo/');
-  const videoFile = files.find(f => f.endsWith('.webm'));
-  if (videoFile) {
-    const oldPath = path.join('docs/demo/', videoFile);
-    const newPath = path.join('docs/demo/', 'walkthrough.webm');
+  const dir = 'docs/demo/';
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  const files = fs.readdirSync(dir);
+  // Playwright saves with a random name, we want the most recent .webm that isn't our target
+  const videoFiles = files
+    .filter(f => f.endsWith('.webm') && f !== 'walkthrough.webm')
+    .map(f => ({ name: f, time: fs.statSync(path.join(dir, f)).mtime.getTime() }))
+    .sort((a, b) => b.time - a.time);
+
+  if (videoFiles.length > 0) {
+    const videoFile = videoFiles[0].name;
+    const oldPath = path.join(dir, videoFile);
+    const newPath = path.join(dir, 'walkthrough.webm');
+    
+    // Ensure the target directory exists
+    const targetDir = path.dirname(newPath);
+    if (!fs.existsSync(targetDir)) {
+      fs.mkdirSync(targetDir, { recursive: true });
+    }
+
     if (fs.existsSync(newPath)) {
       fs.unlinkSync(newPath);
     }

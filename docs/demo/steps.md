@@ -20,7 +20,8 @@
    - Filtering by rate type.
    - Row selection and 30-day history chart display.
    - API health and latest rates endpoints.
-   - Recording timestamp: 2026-07-03 06:08 UTC.
+   - Recording timestamp: 2026-07-03 06:15 UTC.
+   - Duration: ~28 seconds.
 
 ## Commands used
 
