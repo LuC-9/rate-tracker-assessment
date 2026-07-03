@@ -17,15 +17,15 @@ When `/orchestrator` is used or Multitask Mode delegates work:
 Forbidden: one subagent prompt that combines tests + docs + CI + PR + code.
 
 Orchestrator output MUST include a "Delegation manifest" table:
-| Phase | Agent | Deliverable | Acceptance criteria |
+| Phase | Agent (subagent_type) | Deliverable | Acceptance criteria |
 |---|---|---|---|
 
-Parent agent MUST spawn one Task/subagent per manifest row in Agent mode.
+Parent agent MUST spawn one Task/subagent per manifest row in Agent mode, using the exact type from the row (for example `Task(subagent_type="automation-tester", ...)`).
 
 ## Multitask Mode routing (mandatory)
 When the user invokes `/orchestrator` or Multitask Mode delegates orchestration work:
 
-1. **Same-message execute** — if the user message includes `execute manifest`, `go`, `run it`, `end-to-end`, or `drive to done`, the parent MUST spawn specialist subagents directly from the manifest (one Task per row). Do NOT re-delegate the whole manifest back to an orchestrator subagent that may run readonly/Ask mode.
+1. **Same-message execute** — if the user message includes `execute manifest`, `go`, `run it`, `end-to-end`, or `drive to done`, the parent MUST spawn specialist subagents directly from the manifest (one Task per row) with explicit names like `Task(subagent_type="<row Agent (subagent_type)>", ...)`. Do NOT re-delegate the whole manifest back to an orchestrator subagent that may run readonly/Ask mode.
 2. **Plan then execute** — if the user only asked for planning, return the manifest with status `planning`. When the user replies `execute manifest` (or synonyms above), the parent MUST spawn rows immediately without asking the user to switch chat modes.
 3. **No second prompt** — never tell the user to "switch to Agent mode and resend" when execute was already requested. If a spawned orchestrator subagent hits Ask mode, the parent takes over spawning manifest rows.
 4. **Parallelism** — spawn independent manifest rows in parallel (e.g. docs + tests after CI fix); sequence dependent rows (verify after implementation, review before merge).
@@ -36,7 +36,10 @@ Orchestrator subagent frontmatter MUST keep `readonly: false` so Task spawning a
 Correct:
 - Implement API bugfix -> `implementer`; API test suite -> `automation-tester`; runtime check -> `verifier`.
 - CI Dockerfile fix -> `infra-manager`; PR quality gate -> `pr-reviewer`.
+- Delegation row: `| Test API | automation-tester | Add API tests | Coverage passes in CI |`
+- Spawn call: `Task(subagent_type="automation-tester", prompt="...")`
 
 Incorrect:
 - Single `implementer` prompt requesting "ship feature + tests + docs + CI + review".
 - `automation-tester` asked to write production feature code.
+- Delegation row uses alias (`test agent`) or slash-only alias (`/automation-tester`) instead of exact `automation-tester` subagent_type.
