@@ -27,19 +27,43 @@ Data quality handling:
 
 Failed HTTP parses remain in `raw_responses` for replay; Celery retries transient network failures.
 
+## API decisions
+
+- I kept all public API routes under `/rates/` and reserved `/health/` as an unauthed readiness endpoint for local operations and Compose debugging.
+- `GET /rates/latest/` is anonymous, optionally filterable by `?type=`, and returns a compact `{count, results}` payload because the dashboard only needs the latest row per provider/type pair.
+- `GET /rates/history/` requires `provider` and `type`, supports `from`, `to`, `page`, and `page_size`, and clamps `page_size` to `HISTORY_MAX_PAGE_SIZE` so history queries cannot become unbounded.
+- `POST /rates/ingest/` uses a simple bearer token via DRF authentication classes instead of sessions or an external auth service because the brief only requires a protected machine-to-machine webhook.
+- Validation failures return structured `400` responses rather than raising server errors, which keeps replay/debugging predictable for bad upstream payloads.
+
 ## API cache and invalidation strategy
 
 - `/rates/latest` is cached by optional `type` filter and invalidated immediately after every successful ingest/seed write.
-- `/rates/history` is cached by request signature (`provider`, `type`, date bounds, page, page_size) with bounded TTL, which keeps reads fast while avoiding stale unbounded keys.
-- History keys are request-scoped (hashed) to keep cache keys backend-safe even when providers include spaces/special characters.
+- `/rates/history` is cached by request signature (`provider`, `type`, date bounds, page, page_size) with bounded TTL, which keeps reads fast while avoiding unbounded responses.
+- History keys are request-scoped (hashed) to keep cache keys backend-safe even when providers include spaces or special characters.
+- I chose TTL-based freshness for history instead of targeted invalidation because latest-rate freshness is the reviewer-critical path, while bounded historical pages tolerate brief staleness at this scale.
 
 ## Scheduling choice
 
 I used Celery Beat + worker in Docker Compose for local parity with production-style async scheduling. The tradeoff is more moving pieces than cron, but it keeps retry logic and ingestion scheduling in one queueing model.
 
+## Testing strategy
+
+- I focused the automated coverage on the highest-risk paths the brief cares about: ingestion parsing, HTTP fetch mocking, API auth/validation, idempotent writes, pagination, and cache usage.
+- `pytest` + `pytest-django` back the Django/DRF integration tests so the API contract is exercised against the real serializers, models, and cache layer instead of only unit-level mocks.
+- The HTTP ingestion path includes a mocked `requests.get` test to prove the fetcher handles a known payload shape without depending on a live external endpoint.
+- Cache behavior is tested at the API level for `/rates/latest/` because that is the endpoint with explicit reviewer-facing cache requirements.
+- I did not add a separate frontend automated test suite in the 48-hour window; I prioritized backend correctness, idempotency, and local operability first because those are the required phases.
+
 ## Conscious tradeoff
 
 **Bulk upsert batches vs. row-by-row `update_or_create`:** I chose Django 4.2 `bulk_create(..., update_conflicts=True)` in 5,000-row batches to load ~1M rows in reasonable time. This adds complexity around unsaved FK objects but avoids hours of per-row ORM calls within the 48-hour window. The alternative—streaming SQL `COPY`—would be faster still but harder to keep auditable raw/clean splits.
+
+## Deferred items
+
+- **Push-based frontend updates:** The dashboard currently polls every 60 seconds. That meets the brief, but I deferred WebSockets/SSE because it adds operational complexity beyond the required scope.
+- **Targeted history cache invalidation:** Latest-rate cache keys are explicitly cleared after writes, while history responses currently rely on short TTL expiry rather than per-query invalidation logic.
+- **Live deployment and submission recording:** The repo is optimized for local Docker Compose review. A hosted environment and final walkthrough video are submission extras rather than core platform risk reducers.
+- **Broader frontend test coverage:** The backend has focused pytest coverage, but end-to-end UI automation was deferred to keep time on required ingestion/API reliability first.
 
 ## One thing I would change with more time
 

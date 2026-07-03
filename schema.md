@@ -1,6 +1,6 @@
 # Database Schema
 
-PostgreSQL schema for the Rate Tracker assessment queries.
+PostgreSQL schema for the Rate Tracker assessment queries. The design keeps raw ingestion payloads separate from cleaned rate facts so failed parses remain auditable and replayable.
 
 ## Tables
 
@@ -13,7 +13,7 @@ Stores every raw payload (seed row or HTTP response) for audit and replay.
 | `id` | UUID PK | Same as parquet `raw_response_id` |
 | `provider` | varchar | Raw provider label |
 | `rate_type` | varchar | Product type |
-| `source_url` | url | Optional source |
+| `source_url` | varchar / URL-backed field | Optional upstream source URL |
 | `raw_data` | jsonb | Full payload |
 | `parsed` | boolean | Whether a cleaned rate was produced |
 | `parse_error` | text | Validation/parsing failure reason |
@@ -32,9 +32,10 @@ Clean, queryable rate facts linked 1:1 to a raw response.
 | `rate_value` | numeric(15,6) | Percentage value |
 | `effective_date` | date | When rate applies |
 | `ingestion_timestamp` | timestamptz | When data was ingested |
-| `source_url` | url | Optional |
+| `source_url` | varchar / URL-backed field | Optional source URL |
 | `currency` | varchar | Normalized currency code |
 | `raw_response_id` | UUID FK unique | Idempotency anchor |
+| `created_at` / `updated_at` | timestamptz | Audit timestamps inherited from `BaseModel` |
 
 ## Indexes
 
@@ -55,7 +56,7 @@ FROM rates
 ORDER BY provider_normalized, rate_type, effective_date DESC, ingestion_timestamp DESC;
 ```
 
-Implemented via `Rate.get_latest_per_provider()` using PostgreSQL `DISTINCT ON`.
+Implemented via `Rate.get_latest_per_provider()` using PostgreSQL `DISTINCT ON`, ordered by `effective_date` and `ingestion_timestamp` descending so ties resolve to the freshest ingest.
 
 ### Rate change over last 30 days for a type
 
@@ -72,6 +73,12 @@ ORDER BY ingestion_timestamp DESC;
 ```
 
 Supported by `Rate.ingested_in_window(start, end)` and the `idx_ingestion_ts` index.
+
+## Why the raw/clean split exists
+
+- `raw_responses` preserves the original payload, parse status, and parse errors for replay/debugging.
+- `rates` holds the normalized fields needed for the assessment queries and API responses.
+- The one-to-one link from `rates` back to `raw_responses` is the idempotency anchor used during seed and webhook upserts.
 
 ## Tradeoffs
 
