@@ -57,6 +57,8 @@ docker compose run --rm web /app/scripts/entrypoint.sh test
 docker compose logs -f
 ```
 
+For service lifecycle details, ingestion operations, and local troubleshooting, see the [operations runbook](docs/operations.md).
+
 ## Environment variables
 
 Copy `.env.example` to `.env` before running the stack. The backend reads these values at startup, while the frontend API base URL is injected from `docker-compose.yml`.
@@ -101,6 +103,7 @@ Fail-fast validation is enabled in the provided `.env.example` (`REQUIRE_ENV_VAL
 - **Frontend:** Next.js dashboard backed by the real API, with sortable latest-rate data, a 30-day chart, auto-refresh every 60 seconds, and explicit loading/error states.
 
 See `DECISIONS.md` for engineering rationale and `schema.md` for database design details.
+See `docs/operations.md` for the runtime topology, startup sequence, ingestion workflows, cache freshness notes, and troubleshooting checklist.
 
 ## API examples
 
